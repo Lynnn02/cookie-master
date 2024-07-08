@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Exclude favicon.ico from the rewrite rules
+RewriteCond %{REQUEST_URI} !^/favicon.ico$
+
+# Redirect all other requests to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
