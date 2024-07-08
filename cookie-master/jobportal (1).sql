@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 30, 2024 at 08:59 PM
+-- Generation Time: Jul 08, 2024 at 04:15 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -94,9 +94,9 @@ CREATE TABLE `reviews` (
 --
 
 INSERT INTO `reviews` (`id`, `userId`, `jobId`, `company`, `category`, `rating`, `comment`) VALUES
-(1, 1, 1, 'Tech Innovators Inc.', 'Salary', 4, 'Good salary package.'),
 (2, 2, 1, 'Tech Innovators Inc.', 'Work Environment', 5, 'Excellent work environment.'),
-(3, 3, 2, 'Creative Studio', 'Management', 3, 'Average management.');
+(3, 3, 2, 'Creative Studio', 'Management', 3, 'Average management.'),
+(0, 1, 1, 'Tech Innovators Inc.', 'Career Growth', 5, 'good potential for internship to be a permanent worker');
 
 -- --------------------------------------------------------
 
@@ -118,39 +118,9 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `company`, `phoneNumber`) VALUES
-(0, 'Nurfazlin', 'fazlinMatTamidi@gmail.com', '$2y$10$mfcCHjveDPW0k1m0nMk8D.6DQFjzpkasVCJI7ZEHN9lqIJOB.BN8i', 'applicant', 'C-1-1, PPR KERINCHI, JLN PANTAI PERMAI', '01161219048'),
-(1, 'John Doe', 'john@example.com', 'password123', 'applicant', 'Tech Innovators Inc.', '0'),
-(2, 'Jane Smith', 'jane@example.com', 'password123', 'applicant', 'Creative Studio', '0'),
-(3, 'Admin User', 'admin@example.com', 'admin123', 'employer', 'Tech Innovators Inc.', '0');
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `applications`
---
-ALTER TABLE `applications`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `jobs`
---
-ALTER TABLE `jobs`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `reviews`
---
-ALTER TABLE `reviews`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`);
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `userType`, `address`, `phoneNumber`) VALUES
+(0, 'Nurfazlin', 'fazlinMatTamidi@gmail.com', 'faz', 'applicant', 'C-1-1, PPR KERINCHI, JLN PANTAI PERMAI', '01161219048'),
+(0, 'izzah', 'izzah@gmail.com', '123', 'employer', 'kdse', '01161219088');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
