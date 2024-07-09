@@ -28,7 +28,7 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `applications` (
-  `id` int(11) NOT NULL,
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `jobId` int(11) DEFAULT NULL,
   `userId` int(11) DEFAULT NULL,
   `applicantName` varchar(100) DEFAULT NULL,
@@ -53,7 +53,7 @@ INSERT INTO `applications` (`id`, `jobId`, `userId`, `applicantName`, `applicant
 --
 
 CREATE TABLE `jobs` (
-  `id` int(11) NOT NULL,
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `title` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `details` text DEFAULT NULL,
@@ -105,7 +105,7 @@ INSERT INTO `reviews` (`id`, `userId`, `jobId`, `company`, `category`, `rating`,
 --
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
   `name` varchar(100) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `password` varchar(100) DEFAULT NULL,
@@ -119,8 +119,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `userType`, `address`, `phoneNumber`) VALUES
-(0, 'Nurfazlin', 'fazlinMatTamidi@gmail.com', 'faz', 'applicant', 'C-1-1, PPR KERINCHI, JLN PANTAI PERMAI', '01161219048'),
-(0, 'izzah', 'izzah@gmail.com', '123', 'employer', 'kdse', '01161219088');
+(1, 'Nurfazlin', 'fazlinMatTamidi@gmail.com', 'faz', 'applicant', 'C-1-1, PPR KERINCHI, JLN PANTAI PERMAI', '01161219048'),
+(2, 'izzah', 'izzah@gmail.com', '123', 'employer', 'kdse', '01161219088');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

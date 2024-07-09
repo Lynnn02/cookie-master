@@ -4,7 +4,15 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
         <router-link class="navbar-brand mx-auto" to="/">JOBPORTAL</router-link>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -30,13 +38,13 @@
 
     <!-- Job Details -->
     <div class="container mt-4">
-      <div class="card job-card">
+      <div class="card job-card" v-if="job">
         <div class="card-body">
           <h3 class="card-title">{{ job.title }}</h3>
           <p class="card-text">{{ job.description }}</p>
           <p><strong>Location:</strong> {{ job.location }}</p>
           <p><strong>Type:</strong> {{ job.type }}</p>
-          <p><strong>Salary:</strong> {{ job.salary }}</p>
+          <p><strong>Salary:</strong> {{ job.salaryMin }} - {{ job.salaryMax }}</p>
           <div class="d-flex mb-2">
             <button class="btn btn-primary mr-2" @click="applyJob(job.id)">
               <i class="fa fa-paper-plane"></i> Apply Now
@@ -50,26 +58,40 @@
           </div>
         </div>
       </div>
+      <div class="alert alert-danger" v-else role="alert">
+        Job not found!
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { jobs } from '@/dummyData';
+import axios from 'axios';
 
 export default {
   name: 'JobDetails',
   props: ['id'],
   data() {
     return {
-      job: null,
+      job: '',
+      error: null,
+      loading: true,
     };
   },
   created() {
-    const jobId = parseInt(this.id);
-    this.job = jobs.find(job => job.id === jobId);
+    this.fetchJob();
   },
   methods: {
+    async fetchJob() {
+      try {
+        const response = await axios.get(`http:localhost:8088/jobs/${this.id}`);
+        this.job = response.data.job;
+        this.loading = false;
+      } catch (error) {
+        this.error = 'Error fetching job';
+        console.error('Error fetching job:', error);
+      }
+    },
     applyJob(jobId) {
       this.$router.push({ name: 'ApplyJob', params: { id: jobId.toString() } });
     },

@@ -4,7 +4,15 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
         <router-link class="navbar-brand mx-auto" to="/">JOBPORTAL</router-link>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -29,7 +37,13 @@
     </nav>
 
     <!-- Apply Job -->
-    <div class="container mt-4" v-if="job">
+    <div class="container mt-4" v-if="loading">
+      <div class="alert alert-info" role="alert">
+        Loading job details...
+      </div>
+    </div>
+
+    <div class="container mt-4" v-if="!loading && job">
       <div class="card">
         <div class="card-body">
           <h3 class="card-title">Apply for {{ job.title }}</h3>
@@ -37,35 +51,67 @@
           <form @submit.prevent="submitApplication">
             <div class="form-group">
               <label for="applicantName">Name</label>
-              <input type="text" id="applicantName" v-model="applicantName" class="form-control" required>
+              <input
+                type="text"
+                id="applicantName"
+                v-model="applicantName"
+                class="form-control"
+                required
+              />
             </div>
             <div class="form-group">
               <label for="applicantEmail">Email</label>
-              <input type="email" id="applicantEmail" v-model="applicantEmail" class="form-control" required>
+              <input
+                type="email"
+                id="applicantEmail"
+                v-model="applicantEmail"
+                class="form-control"
+                required
+              />
             </div>
             <div class="form-group">
               <label for="introduction">Introduction</label>
-              <textarea id="introduction" v-model="introduction" class="form-control" rows="5" required></textarea>
+              <textarea
+                id="introduction"
+                v-model="introduction"
+                class="form-control"
+                rows="5"
+                required
+              ></textarea>
             </div>
             <div class="form-group">
               <label for="resume">Upload Resume/CV</label>
-              <input type="file" id="resume" @change="handleFileUpload" class="form-control" accept=".pdf,.doc,.docx" required>
+              <input
+                type="file"
+                id="resume"
+                @change="handleFileUpload"
+                class="form-control"
+                accept=".pdf,.doc,.docx"
+                required
+              />
             </div>
             <button type="submit" class="btn btn-primary">Submit Application</button>
           </form>
         </div>
       </div>
     </div>
-    <div class="container mt-4" v-else>
+
+    <div class="container mt-4" v-if="!loading && !job">
       <div class="alert alert-danger" role="alert">
         Job not found!
+      </div>
+    </div>
+
+    <div class="container mt-4" v-if="error">
+      <div class="alert alert-danger" role="alert">
+        {{ error }}
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { jobs, applications, currentUser } from '@/dummyData';
+import axios from 'axios';
 
 export default {
   name: 'ApplyJob',
@@ -77,52 +123,80 @@ export default {
       applicantEmail: '',
       introduction: '',
       resume: null,
+      currentUser: '',
+      loading: true,
+      error: null,
     };
   },
   created() {
-    const jobId = parseInt(this.id);
-    this.job = jobs.find(job => job.id === jobId);
-    if (!this.job) {
-      console.error('Job not found for id:', jobId);
-    }
+    console.log('Job ID:', this.id);
+    this.fetchJob();
+    this.fetchCurrentUser();
   },
   methods: {
+    async fetchJob() {
+      try {
+        const response = await axios.get(`http://localhost:8088/jobs/${this.id}`);
+        console.log('Job Data:', response.data);
+        this.job = response.data.job;
+        this.loading = false;
+      } catch (error) {
+        this.error = 'Error fetching job';
+        console.error('Error fetching job:', error);
+      }
+    },
+    fetchCurrentUser() {
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      if (user) {
+        this.currentUser = user;
+        this.applicantName = this.currentUser.name;
+        this.applicantEmail = this.currentUser.email;
+      } else {
+        this.error = 'User not found in local storage';
+        console.error('User not found in local storage');
+      }
+    },
     handleFileUpload(event) {
       this.resume = event.target.files[0];
     },
-    submitApplication() {
+    async submitApplication() {
       if (!this.resume) {
         alert('Please upload your resume/CV.');
         return;
       }
 
-      // Store the application details with status 'pending'
-      const newApplication = {
-        id: applications.length + 1,
-        jobId: this.job.id,
-        userId: currentUser.id, // Add userId to the application
-        applicantName: this.applicantName,
-        applicantEmail: this.applicantEmail,
-        introduction: this.introduction,
-        resume: this.resume.name,
-        status: 'pending', // Add status field
-      };
+      if (!this.job || !this.job.id) {
+        alert('Job details are not loaded properly.');
+        return;
+      }
 
-      applications.push(newApplication);
+      const formData = new FormData();
+      formData.append('jobId', this.job.id);
+      formData.append('userId', this.currentUser.id); // Pass the correct user ID
+      formData.append('applicantName', this.applicantName);
+      formData.append('applicantEmail', this.applicantEmail);
+      formData.append('introduction', this.introduction);
+      formData.append('resume', this.resume);
+      formData.append('status', 'pending');
 
-      // Log the application details
-      console.log('Application submitted:', newApplication);
-
-      // Clear form fields
-      this.applicantName = '';
-      this.applicantEmail = '';
-      this.introduction = '';
-      this.resume = null;
-
-      alert('Application submitted successfully!');
+      try {
+        await axios.post('http://localhost:8088/applications', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        alert('Application submitted successfully!');
+        this.applicantName = '';
+        this.applicantEmail = '';
+        this.introduction = '';
+        this.resume = null;
+      } catch (error) {
+        console.error('Error submitting application:', error);
+        alert('Failed to submit application.');
+      }
     },
     logout() {
-      // Perform any logout logic here (like clearing tokens, etc.)
+      localStorage.removeItem('currentUser');
       this.$router.push({ name: 'HomePage' });
     },
   },

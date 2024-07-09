@@ -4,7 +4,15 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
         <router-link class="navbar-brand mx-auto" to="/">JOBPORTAL</router-link>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -31,8 +39,8 @@
     <!-- Application List -->
     <div class="container mt-4">
       <h3>Your Applications</h3>
-      <div v-if="filteredApplications.length">
-        <div class="card mb-3" v-for="application in filteredApplications" :key="application.id">
+      <div v-if="applications.length">
+        <div class="card mb-3" v-for="application in applications" :key="application.id">
           <div class="card-body">
             <h5 class="card-title">Job ID: {{ application.jobId }}</h5>
             <p class="card-text">Applicant Name: {{ application.applicantName }}</p>
@@ -41,7 +49,7 @@
             <p class="card-text">Resume: {{ application.resume }}</p>
             <p class="card-text">Status: {{ application.status }}</p>
             <button class="btn btn-danger" @click="cancelApplication(application.id)">Cancel Application</button>
-            <button class="btn btn-success" @click="updateApplication(application.id)">Edit Application</button>
+            <button class="btn btn-success" @click="navigateToUpdateApplication(application.jobId)">Edit Application</button>
           </div>
         </div>
       </div>
@@ -53,33 +61,59 @@
 </template>
 
 <script>
-import { applications, currentUser } from '@/dummyData';
+import axios from 'axios';
 
 export default {
   name: 'ApplicationList',
   data() {
     return {
       applications: [],
+      currentUser: '',
     };
   },
-  computed: {
-    filteredApplications() {
-      return this.applications.filter(app => app.userId === currentUser.id);
-    },
-  },
-  created() {
-    this.applications = applications.filter(app => app.userId === currentUser.id);
+  async created() {
+    await this.fetchCurrentUser();
+    if (this.currentUser) {
+      await this.fetchApplications();
+    }
   },
   methods: {
-    cancelApplication(applicationId) {
-      const index = applications.findIndex(app => app.id === applicationId && app.userId === currentUser.id);
-      if (index !== -1) {
-        applications.splice(index, 1);
-        this.applications = applications.filter(app => app.userId === currentUser.id);
-        alert('Application canceled.');
+    async fetchCurrentUser() {
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      if (user) {
+        this.currentUser = user;
+      } else {
+        console.error('User not found in local storage');
+        this.$router.push({ name: 'HomePage' });
       }
     },
+    async fetchApplications() {
+      try {
+        //const response = await axios.get(`http://localhost:8088/applications?userId=${this.currentUser.id}`);
+        const response = await axios.get('http://localhost:8088/applications', { params: { userId: this.currentUser.id }
+      });
+        this.applications = response.data.applications;
+        // const allApplications = response.data.applications;
+        // this.applications = allApplications.filter(app => app.userId === this.currentUser.id);
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+      }
+    },
+    async cancelApplication(applicationId) {
+      try {
+        await axios.delete(`http://localhost:8088/applications/${applicationId}`);
+        this.applications = this.applications.filter(app => app.id !== applicationId);
+        alert('Application canceled.');
+      } catch (error) {
+        console.error('Error canceling application:', error);
+        alert('Failed to cancel application.');
+      }
+    },
+    navigateToUpdateApplication(applicationId) {
+      this.$router.push({ name: 'UpdateApplication', params: { id: applicationId } });
+    },
     logout() {
+      localStorage.removeItem('currentUser');
       this.$router.push({ name: 'HomePage' });
     },
   },

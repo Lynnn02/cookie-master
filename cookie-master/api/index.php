@@ -395,6 +395,230 @@ $app->delete('/reviews/{id}', function($request, $response, $args) {
     }
 });
 
+// // Get all applications
+// $app->get('/applications', function($request, $response, $args) {
+//     try {
+//         $db = new db();
+//         $db = $db->connect();
+
+//         $sql = "SELECT * FROM applications";
+//         $stmt = $db->query($sql);
+//         $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+//         return $response->withJson(['status' => 'success', 'application' => $application])
+//                         ->withHeader('Content-Type', 'application/json')
+//                         ->withStatus(200);
+//     } catch (PDOException $e) {
+//         error_log($e->getMessage(), 0);
+//         return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+//                         ->withHeader('Content-Type', 'application/json')
+//                         ->withStatus(500);
+//     }
+// });
+
+// Get applications by user ID
+$app->get('/applications', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+
+        $userId = $request->getQueryParams()['userId'];
+        $stmt = $db->prepare("SELECT * FROM applications WHERE userId = :userId");
+        $stmt->bindParam(':userId', $userId);
+        $stmt->execute();
+        $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $response->withJson(['status' => 'success', 'applications' => $applications])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(200);
+    } catch (PDOException $e) {
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
+
+// Create Application
+$app->post('/applications', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+
+        $input = $request->getParsedBody();
+        $jobId = $input['jobId'];
+        $userId = $input['userId'];
+        $applicantName = $input['applicantName'];
+        $applicantEmail = $input['applicantEmail'];
+        $introduction = $input['introduction'];
+        $resume = $input['resume'];
+        $status = $input['status'];
+
+        $sql = "INSERT INTO applications (jobId, userId, applicantName, applicantEmail, introduction, resume, status) 
+                VALUES (:jobId, :userId, :applicantName, :applicantEmail, :introduction, :resume, :status)";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':jobId', $jobId);
+        $stmt->bindParam(':userId', $userId);
+        $stmt->bindParam(':applicantName', $applicantName);
+        $stmt->bindParam(':applicantEmail', $applicantEmail);
+        $stmt->bindParam(':introduction', $introduction);
+        $stmt->bindParam(':resume', $resume);
+        $stmt->bindParam(':status', $status);
+        $stmt->execute();
+
+        return $response->withJson(['status' => 'success'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(201);
+    } catch (PDOException $e) {
+        error_log($e->getMessage(), 0);
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
+
+// // Get all applications
+// $app->get('/applications', function($request, $response, $args) {
+//     try {
+//         $db = new db();
+//         $db = $db->connect();
+
+//         $sql = "SELECT * FROM applications";
+//         $stmt = $db->query($sql);
+//         $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+//         return $response->withJson(['status' => 'success', 'applications' => $applications])
+//                         ->withHeader('Content-Type', 'application/json')
+//                         ->withStatus(200);
+//     } catch (PDOException $e) {
+//         error_log($e->getMessage(), 0);
+//         return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+//                         ->withHeader('Content-Type', 'application/json')
+//                         ->withStatus(500);
+//     }
+// });
+
+// Get application by ID
+$app->get('/applications/{id}', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+
+        $id = $args['id'];
+
+        $stmt = $db->prepare("SELECT * FROM applications WHERE id = :id");
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        $application = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($application) {
+            return $response->withJson(['status' => 'success', 'application' => $application])
+                            ->withHeader('Content-Type', 'application/json')
+                            ->withStatus(200);
+        } else {
+            return $response->withJson(['status' => 'failed', 'message' => 'Application not found'])
+                            ->withHeader('Content-Type', 'application/json')
+                            ->withStatus(404);
+        }
+    } catch (PDOException $e) {
+        error_log($e->getMessage(), 0);
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
+
+// Get application by current user and job ID
+$app->get('/applications/user/{userId}/job/{jobId}', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+
+        $userId = $args['userId'];
+        $jobId = $args['jobId'];
+
+        $stmt = $db->prepare("SELECT * FROM applications WHERE userId = :userId AND jobId = :jobId");
+        $stmt->bindParam(':userId', $userId);
+        $stmt->bindParam(':jobId', $jobId);
+        $stmt->execute();
+        $application = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($application) {
+            return $response->withJson(['status' => 'success', 'application' => $application])
+                            ->withHeader('Content-Type', 'application/json')
+                            ->withStatus(200);
+        } else {
+            return $response->withJson(['status' => 'failed', 'message' => 'Application not found'])
+                            ->withHeader('Content-Type', 'application/json')
+                            ->withStatus(404);
+        }
+    } catch (PDOException $e) {
+        error_log($e->getMessage(), 0);
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
+
+// Update Application
+$app->put('/applications/{id}', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+
+        $id = $args['id'];
+        $input = $request->getParsedBody();
+        $applicantName = $input['applicantName'];
+        $applicantEmail = $input['applicantEmail'];
+        $introduction = $input['introduction'];
+        $resume = isset($input['resume']) ? $input['resume'] : null;
+
+        $sql = "UPDATE applications SET applicantName = :applicantName, applicantEmail = :applicantEmail, introduction = :introduction" .
+               ($resume ? ", resume = :resume" : "") .
+               " WHERE id = :id";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':applicantName', $applicantName);
+        $stmt->bindParam(':applicantEmail', $applicantEmail);
+        $stmt->bindParam(':introduction', $introduction);
+        if ($resume) {
+            $stmt->bindParam(':resume', $resume);
+        }
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+
+        return $response->withJson(['status' => 'success'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(200);
+    } catch (PDOException $e) {
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
+
+// Delete Application
+$app->delete('/applications/{id}', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+
+        $id = $args['id'];
+
+        $sql = "DELETE FROM applications WHERE id = :id";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+
+        return $response->withJson(['status' => 'success'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(200);
+    } catch (PDOException $e) {
+        error_log($e->getMessage(), 0);
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
+
 // Test route to ensure server is running
 $app->get('/', function ($request, $response, $args) {
     return $response->withJson(['status' => 'API is running']);

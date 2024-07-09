@@ -9,6 +9,7 @@ import SignUp from "../components/Auth/SignUp.vue";
 import JobList from "../components/Job/JobList.vue";
 import JobDetails from "../components/Job/JobDetails.vue";
 import ApplyJob from "../components/Job/ApplyJob.vue";
+import UpdateApplication from "../components/Job/UpdateApplication.vue";
 import AddReview from "../components/Applicant/AddReview.vue";
 import ReviewList from "../components/Applicant/ReviewList.vue";
 import ApplicationList from "../components/Applicant/ApplicationList.vue";
@@ -38,6 +39,7 @@ const routes = [
   { path: "/joblist", name: "JobList", component: JobList },
   { path: "/jobdetails/:id", name: "JobDetails", component: JobDetails, props: true },
   { path: "/applyjob/:id", name: "ApplyJob", component: ApplyJob, props: true },
+  { path: "/updateapplication/:id", name: "UpdateApplication", component: UpdateApplication, props: true },
   { path: "/addreview/:id", name: "AddReview", component: AddReview, props: true },
   { path: "/editreview/:id", name: "EditReview", component: EditReview, props: true },
   { path: "/reviewlist/:id", name: "ReviewList", component: ReviewList, props: true },
