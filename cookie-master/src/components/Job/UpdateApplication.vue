@@ -4,15 +4,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
         <router-link class="navbar-brand mx-auto" to="/">JOBPORTAL</router-link>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-toggle="collapse"
-          data-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -116,7 +108,7 @@ export default {
   props: ['id'],
   data() {
     return {
-      applicationsId: parseInt(this.id),
+      applicationId: parseInt(this.id),
       application: '',
       applicantName: '',
       applicantEmail: '',
@@ -132,9 +124,9 @@ export default {
   },
   methods: {
     fetchCurrentUser() {
-      const user = JSON.parse(localStorage.getItem('currentUser'));
+      const user = localStorage.getItem('currentUser');
       if (user) {
-        this.currentUser = user;
+        this.currentUser = JSON.parse(user);
         this.fetchApplication();
       } else {
         this.error = 'User not found in local storage';
@@ -144,9 +136,7 @@ export default {
     },
     async fetchApplication() {
       try {
-        console.log(`Fetching application for user ${this.currentUser.id} and application ${this.applicationId}`);
-        const response = await axios.get(`http://localhost:8088/applications/user/${this.currentUser.id}/application/${this.applicationsId}`);
-        console.log('Response data:', response.data); // Debugging statement
+        const response = await axios.get(`http://localhost:8088/applications/${this.applicationId}`);
         this.application = response.data.application;
         if (this.application) {
           this.applicantName = this.application.applicantName;
@@ -164,7 +154,7 @@ export default {
       this.resume = event.target.files[0];
     },
     async updateApplication() {
-      if (!this.application || !this.applications.id) {
+      if (!this.application || !this.applicationId) {
         alert('Application details are not loaded properly.');
         return;
       }
@@ -179,7 +169,7 @@ export default {
       formData.append('status', 'pending');
 
       try {
-        await axios.put(`http://localhost:8088/applications/${this.application.id}`, formData, {
+        await axios.put(`http://localhost:8088/applications/${this.applicationId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

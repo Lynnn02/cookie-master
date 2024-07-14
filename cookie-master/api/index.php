@@ -353,6 +353,20 @@ $app->put('/reviews/{id}', function($request, $response, $args) {
         $rating = $input['rating'];
         $comment = $input['comment'];
         
+        // Check if the review exists
+        $checkSql = "SELECT COUNT(*) as count FROM reviews WHERE id = :id";
+        $checkStmt = $db->prepare($checkSql);
+        $checkStmt->bindParam(':id', $id);
+        $checkStmt->execute();
+        $row = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($row['count'] == 0) {
+            return $response->withJson(['status' => 'failed', 'message' => 'Review not found'])
+                            ->withHeader('Content-Type', 'application/json')
+                            ->withStatus(404);
+        }
+        
+        // Update the review
         $sql = "UPDATE reviews SET category = :category, rating = :rating, comment = :comment WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':category', $category);
@@ -582,37 +596,21 @@ $app->get('/applications/{id}', function($request, $response, $args) {
     }
 });
 
-// Get application by current user and job ID
-$app->get('/applications/user/{userId}/job/{jobId}', function($request, $response, $args) {
-    try {
-        $db = new db();
-        $db = $db->connect();
+// // Get application by current user and job ID
+// $app->get('/applications/user/{userId}/application/{applicationId}', function ($request, $response, $args) {
+//     $userId = $args['userId'];
+//     $applicationId = $args['applicationId'];
 
-        $userId = $args['userId'];
-        $jobId = $args['jobId'];
+//     // Fetch application from database
+//     $application = fetchApplication($userId, $applicationId);
 
-        $stmt = $db->prepare("SELECT * FROM applications WHERE userId = :userId AND jobId = :jobId");
-        $stmt->bindParam(':userId', $userId);
-        $stmt->bindParam(':jobId', $jobId);
-        $stmt->execute();
-        $application = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($application) {
-            return $response->withJson(['status' => 'success', 'application' => $application])
-                            ->withHeader('Content-Type', 'application/json')
-                            ->withStatus(200);
-        } else {
-            return $response->withJson(['status' => 'failed', 'message' => 'Application not found'])
-                            ->withHeader('Content-Type', 'application/json')
-                            ->withStatus(404);
-        }
-    } catch (PDOException $e) {
-        error_log($e->getMessage(), 0);
-        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
-                        ->withHeader('Content-Type', 'application/json')
-                        ->withStatus(500);
-    }
-});
+//     if ($application) {
+//         // Return JSON response
+//         return $response->withJson(['application' => $application]);
+//     } else {
+//         return $response->withStatus(404)->withJson(['error' => 'Application not found']);
+//     }
+// });
 
 // Update Application
 $app->put('/applications/{id}', function($request, $response, $args) {
