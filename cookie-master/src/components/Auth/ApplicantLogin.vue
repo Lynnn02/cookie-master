@@ -45,15 +45,18 @@ export default {
         const response = await axios.post('http://localhost:8088/login', { // Ensure the URL is correct
           email: this.email,
           password: this.password,
-         // role: 'applicant',
         });
         if (response.data.status === 'success') {
           const user = response.data.user;
-          console.log('Applicant logged in:', user);
-          // Store user data in localStorage or session for state persistence
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          // Redirect to applicant's job list page after successful login
-          this.$router.push('/joblist');
+          if (user.userType === 'applicant') {
+            console.log('Applicant logged in:', user);
+            // Store user data in localStorage or session for state persistence
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            // Redirect to applicant's job list page after successful login
+            this.$router.push('/joblist');
+          } else {
+            alert('Only applicants are allowed to login.');
+          }
         } else {
           alert('Invalid email or password.');
         }

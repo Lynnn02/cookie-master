@@ -5,7 +5,7 @@
       <span class="navbar-brand mx-auto h1">JOBPORTAL</span>
     </nav>
     <div class="card shadow p-3 mb-5 bg-white rounded animate__animated animate__fadeIn animate__float">
-      <h2 class="text-center">Applicant Login</h2>
+      <h2 class="text-center">Employer Login</h2>
       <form @submit.prevent="login">
         <div class="form-group">
           <input type="email" id="email" v-model="email" class="form-control" placeholder="Email" required>
@@ -45,15 +45,18 @@ export default {
         const response = await axios.post('http://localhost:8088/login', {
           email: this.email,
           password: this.password,
-          role: 'employer',
         });
         if (response.data.status === 'success') {
           const user = response.data.user;
-          console.log('Applicant logged in:', user);
-          // Store user data in localStorage or session for state persistence
-          localStorage.setItem('user', JSON.stringify(user));
-          // Redirect to applicant's job list page after successful login
-          this.$router.push('/admin/home');
+          if (user.userType === 'employer') {
+            console.log('Employer logged in:', user);
+            // Store user data in localStorage or session for state persistence
+            localStorage.setItem('user', JSON.stringify(user));
+            // Redirect to applicant's job list page after successful login
+            this.$router.push('/admin/home');
+          } else {
+            alert('Only employers are allowed to login.');
+          }
         } else {
           alert('Invalid email or password.');
         }
