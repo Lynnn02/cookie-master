@@ -81,7 +81,7 @@ export default {
       } else {
         console.error('User not found in local storage');
         alert('User not found. Please log in.');
-        //this.$router.push({ name: 'HomePage' });
+        this.$router.push({ name: 'HomePage' });
       }
     },
     async fetchApplications() {

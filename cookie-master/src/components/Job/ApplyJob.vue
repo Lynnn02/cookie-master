@@ -4,15 +4,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
         <router-link class="navbar-brand mx-auto" to="/">JOBPORTAL</router-link>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-toggle="collapse"
-          data-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -37,13 +29,7 @@
     </nav>
 
     <!-- Apply Job -->
-    <div class="container mt-4" v-if="loading">
-      <div class="alert alert-info" role="alert">
-        Loading job details...
-      </div>
-    </div>
-
-    <div class="container mt-4" v-if="!loading && job">
+    <div class="container mt-4" v-if="job">
       <div class="card">
         <div class="card-body">
           <h3 class="card-title">Apply for {{ job.title }}</h3>
@@ -51,60 +37,28 @@
           <form @submit.prevent="submitApplication">
             <div class="form-group">
               <label for="applicantName">Name</label>
-              <input
-                type="text"
-                id="applicantName"
-                v-model="applicantName"
-                class="form-control"
-                required
-              />
+              <input type="text" id="applicantName" v-model="applicantName" class="form-control" required>
             </div>
             <div class="form-group">
               <label for="applicantEmail">Email</label>
-              <input
-                type="email"
-                id="applicantEmail"
-                v-model="applicantEmail"
-                class="form-control"
-                required
-              />
+              <input type="email" id="applicantEmail" v-model="applicantEmail" class="form-control" required>
             </div>
             <div class="form-group">
               <label for="introduction">Introduction</label>
-              <textarea
-                id="introduction"
-                v-model="introduction"
-                class="form-control"
-                rows="5"
-                required
-              ></textarea>
+              <textarea id="introduction" v-model="introduction" class="form-control" rows="5" required></textarea>
             </div>
             <div class="form-group">
               <label for="resume">Upload Resume/CV</label>
-              <input
-                type="file"
-                id="resume"
-                @change="handleFileUpload"
-                class="form-control"
-                accept=".pdf,.doc,.docx"
-                required
-              />
+              <input type="file" id="resume" @change="handleFileUpload" class="form-control" accept=".pdf,.doc,.docx" required>
             </div>
             <button type="submit" class="btn btn-primary">Submit Application</button>
           </form>
         </div>
       </div>
     </div>
-
-    <div class="container mt-4" v-if="!loading && !job">
+    <div class="container mt-4" v-else>
       <div class="alert alert-danger" role="alert">
         Job not found!
-      </div>
-    </div>
-
-    <div class="container mt-4" v-if="error">
-      <div class="alert alert-danger" role="alert">
-        {{ error }}
       </div>
     </div>
   </div>
@@ -118,7 +72,7 @@ export default {
   props: ['id'],
   data() {
     return {
-      job: null,
+      job: '',
       applicantName: '',
       applicantEmail: '',
       introduction: '',

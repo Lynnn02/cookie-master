@@ -87,15 +87,30 @@ export default {
   inject: ['currentUser', 'setCurrentUser'],
   data() {
     return {
-      user: {},
+      user: null,
       editMode: false,
     };
   },
   created() {
     this.fetchProfile();
   },
+  watch: {
+    currentUser: {
+      handler(newVal) {
+        if (newVal && newVal.id) {
+          this.fetchProfile();
+        }
+      },
+      immediate: true,
+      deep: true,
+    },
+  },
   methods: {
     fetchProfile() {
+      if (!this.currentUser || !this.currentUser.id) {
+        console.error('No current user ID available.');
+        return;
+      }
       axios.get(`http://localhost:8088/updateprofile/${this.currentUser.id}`)
         .then(response => {
           this.user = response.data.user;
@@ -105,7 +120,10 @@ export default {
         });
     },
     updateProfile() {
-      axios.put(`http://localhost:8088/user/profile`, this.user)
+      axios.put(`http://localhost:8088/user/profile`, {
+        id: this.currentUser.id, // Include the user ID in the request body
+        ...this.user
+      })
         .then(() => {
           alert('Profile updated successfully!');
           this.editMode = false;

@@ -491,7 +491,6 @@ $app->delete('/user/{id}', function($request, $response, $args) {
                         ->withStatus(500);
     }
 });
-
 // Get applications by user ID
 $app->get('/applications', function($request, $response, $args) {
     try {
