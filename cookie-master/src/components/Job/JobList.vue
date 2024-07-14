@@ -75,13 +75,13 @@
 </template>
 
 <script>
-import { jobs } from '@/dummyData';
+import axios from 'axios';
 
 export default {
   name: 'JobList',
   data() {
     return {
-      jobs,
+      jobs: [],
       searchTitle: '',
       searchLocation: '',
     };
@@ -95,7 +95,18 @@ export default {
       });
     },
   },
+  created() {
+    this.fetchJobs();
+  },
   methods: {
+    async fetchJobs() {
+      try {
+        const response = await axios.get('http://localhost:8088/jobs');
+        this.jobs = response.data.jobs;
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+      }
+    },
     viewJobDetails(jobId) {
       this.$router.push({ name: 'JobDetails', params: { id: jobId } });
     },
@@ -104,6 +115,7 @@ export default {
     },
     logout() {
       // Perform any logout logic here (like clearing tokens, etc.)
+      localStorage.removeItem('currentUser');
       this.$router.push({ name: 'HomePage' });
     },
   },
