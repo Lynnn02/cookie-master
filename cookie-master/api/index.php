@@ -306,8 +306,6 @@ $app->get('/reviews', function($request, $response, $args) {
     }
 });
 
-
-
 // Add Review
 $app->post('/reviews', function($request, $response, $args) {
     try {
@@ -532,6 +530,7 @@ $app->delete('/user/{id}', function($request, $response, $args) {
                         ->withStatus(500);
     }
 });
+
 // Get applications by user ID
 $app->get('/applications', function($request, $response, $args) {
     try {
@@ -646,30 +645,24 @@ $app->put('/applications/{id}', function($request, $response, $args) {
         
         $id = $args['id'];
         $input = $request->getParsedBody();
-        $applicantName = $input['applicantName'] ?? null;
-        $applicantEmail = $input['applicantEmail'] ?? null;
-        $introduction = $input['introduction'] ?? null;
-        $status = $input['status'] ?? null;
+        $status = $input['status'];
 
         // Check if the application exists
-        $checkSql = "SELECT COUNT(*) as count FROM applications WHERE id = :id";
+        $checkSql = "SELECT * FROM applications WHERE id = :id";
         $checkStmt = $db->prepare($checkSql);
         $checkStmt->bindParam(':id', $id);
         $checkStmt->execute();
-        $row = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        $application = $checkStmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($row['count'] == 0) {
+        if (!$application) {
             return $response->withJson(['status' => 'failed', 'message' => 'Application not found'])
                             ->withHeader('Content-Type', 'application/json')
                             ->withStatus(404);
         }
         
-        // Update the application
-        $sql = "UPDATE applications SET applicantName = :applicantName, applicantEmail = :applicantEmail, introduction = :introduction, status = :status WHERE id = :id";
+        // Update the application status
+        $sql = "UPDATE applications SET status = :status WHERE id = :id";
         $stmt = $db->prepare($sql);
-        $stmt->bindParam(':applicantName', $applicantName);
-        $stmt->bindParam(':applicantEmail', $applicantEmail);
-        $stmt->bindParam(':introduction', $introduction);
         $stmt->bindParam(':status', $status);
         $stmt->bindParam(':id', $id);
         $stmt->execute();
@@ -700,6 +693,26 @@ $app->delete('/applications/{id}', function($request, $response, $args) {
         $stmt->execute();
 
         return $response->withJson(['status' => 'success'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(200);
+    } catch (PDOException $e) {
+        error_log($e->getMessage(), 0);
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
+
+// Fetch all applications
+$app->get('/admin/applications', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+
+        $stmt = $db->query("SELECT * FROM applications");
+        $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $response->withJson(['status' => 'success', 'applications' => $applications])
                         ->withHeader('Content-Type', 'application/json')
                         ->withStatus(200);
     } catch (PDOException $e) {
