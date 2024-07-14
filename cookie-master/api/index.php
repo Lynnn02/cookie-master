@@ -280,6 +280,33 @@ $app->delete('/jobs/{id}', function($request, $response, $args) {
                         ->withStatus(500);
     }
 });
+// Get all reviews without the company column
+$app->get('/reviews', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+
+        // Fetch all reviews without the company column
+        $stmt = $db->query("SELECT id, userId, jobId, category, rating, comment FROM reviews");
+        $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $response->withJson(['status' => 'success', 'reviews' => $reviews])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(200);
+    } catch (PDOException $e) {
+        error_log("PDOException: " . $e->getMessage());
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    } catch (Exception $e) {
+        error_log("Exception: " . $e->getMessage());
+        return $response->withJson(['status' => 'failed', 'message' => 'An unexpected error occurred'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
+
+
 
 // Add Review
 $app->post('/reviews', function($request, $response, $args) {
