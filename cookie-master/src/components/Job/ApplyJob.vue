@@ -143,6 +143,7 @@ export default {
       } catch (error) {
         this.error = 'Error fetching job';
         console.error('Error fetching job:', error);
+        this.loading = false;
       }
     },
     fetchCurrentUser() {
@@ -186,10 +187,7 @@ export default {
           },
         });
         alert('Application submitted successfully!');
-        this.applicantName = '';
-        this.applicantEmail = '';
-        this.introduction = '';
-        this.resume = null;
+        this.$router.push({ name: 'ApplicationList' });
       } catch (error) {
         console.error('Error submitting application:', error);
         alert('Failed to submit application.');

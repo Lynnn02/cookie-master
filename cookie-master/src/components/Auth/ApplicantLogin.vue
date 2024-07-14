@@ -51,7 +51,7 @@ export default {
           const user = response.data.user;
           console.log('Applicant logged in:', user);
           // Store user data in localStorage or session for state persistence
-          localStorage.setItem('user', JSON.stringify(user));
+          localStorage.setItem('currentUser', JSON.stringify(user));
           // Redirect to applicant's job list page after successful login
           this.$router.push('/joblist');
         } else {

@@ -68,12 +68,6 @@
               </div>
             </div>
           </div>
-          <div v-if="loading" class="text-center">
-            <i class="fa fa-spinner fa-spin"></i> Loading jobs...
-          </div>
-          <div v-if="error" class="alert alert-danger" role="alert">
-            {{ error }}
-          </div>
         </div>
       </div>
     </div>
@@ -81,21 +75,16 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { jobs } from '@/dummyData';
 
 export default {
   name: 'JobList',
   data() {
     return {
-      jobs: [],
+      jobs,
       searchTitle: '',
       searchLocation: '',
-      loading: true,
-      error: null,
     };
-  },
-  created() {
-    this.fetchJobs();
   },
   computed: {
     filteredJobs() {
@@ -107,17 +96,6 @@ export default {
     },
   },
   methods: {
-    async fetchJobs() {
-      try {
-        const response = await axios.get('http://localhost:8088/jobs');
-        this.jobs = response.data.jobs;
-        this.loading = false;
-      } catch (error) {
-        this.error = 'Error fetching jobs';
-        console.error('Error fetching jobs:', error);
-        this.loading = false;
-      }
-    },
     viewJobDetails(jobId) {
       this.$router.push({ name: 'JobDetails', params: { id: jobId } });
     },

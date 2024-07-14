@@ -1,5 +1,5 @@
 <template>
-  <div class="update-profile-container">
+  <div class="profile-container">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
@@ -21,14 +21,10 @@
               <router-link to="/joblist" class="nav-link">Job List</router-link>
             </li>
             <li class="nav-item">
-              <router-link to="/applicationlist" class="nav-link"
-                >Application List</router-link
-              >
+              <router-link to="/applicationlist" class="nav-link">Application List</router-link>
             </li>
             <li class="nav-item">
-              <router-link to="/updateprofile" class="nav-link"
-                >Profile</router-link
-              >
+              <router-link to="/updateprofile" class="nav-link">Profile</router-link>
             </li>
           </ul>
           <ul class="navbar-nav ml-auto">
@@ -40,124 +36,109 @@
       </div>
     </nav>
 
-    <!-- Profile Display -->
-    <div v-if="!editMode" class="container mt-4">
-      <div class="card">
-        <div class="card-body">
-          <h3 class="card-title">Profile</h3>
-          <div>
-            <p><strong>Full Name:</strong> {{ user.fullName }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Phone Number:</strong> {{ user.phone }}</p>
-            <p><strong>Address:</strong> {{ user.address }}</p>
+    <div class="container mt-4">
+      <h3>User Profile</h3>
+      <div v-if="user">
+        <div class="card mb-3">
+          <div class="card-body">
+            <div v-if="editMode">
+              <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="name" v-model="user.name">
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" v-model="user.email">
+              </div>
+              <div class="form-group">
+                <label for="phoneNumber">Phone Number</label>
+                <input type="text" class="form-control" id="phoneNumber" v-model="user.phoneNumber">
+              </div>
+              <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" class="form-control" id="address" v-model="user.address">
+              </div>
+              <button class="btn btn-success mr-2" @click="updateProfile">Save</button>
+              <button class="btn btn-secondary" @click="editMode = false">Cancel</button>
+            </div>
+            <div v-else>
+              <h5 class="card-title">Name: {{ user.name }}</h5>
+              <p class="card-text">Email: {{ user.email }}</p>
+              <p class="card-text">Phone Number: {{ user.phoneNumber }}</p>
+              <p class="card-text">Address: {{ user.address }}</p>
+              <button class="btn btn-primary mr-2" @click="editMode = true">Update</button>
+              <button class="btn btn-danger" @click="deleteProfile">Delete</button>
+            </div>
           </div>
-          <button @click="editMode = true" class="btn btn-primary">
-            Edit Profile
-          </button>
-          <button @click="deleteProfile" class="btn btn-danger ml-2">
-            Delete Profile
-          </button>
         </div>
       </div>
-    </div>
-
-    <!-- Update Profile Form -->
-    <div v-if="editMode" class="container mt-4">
-      <div class="card">
-        <div class="card-body">
-          <h3 class="card-title">Update Profile</h3>
-          <form @submit.prevent="updateProfile">
-            <div class="form-group">
-              <label for="full-name">Full Name</label>
-              <input
-                type="text"
-                id="full-name"
-                v-model="user.fullName"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                v-model="user.email"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="phone">Phone Number</label>
-              <input
-                type="text"
-                id="phone"
-                v-model="user.phone"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="address">Address</label>
-              <textarea
-                id="address"
-                v-model="user.address"
-                class="form-control"
-                required
-              ></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">
-              Update Profile
-            </button>
-            <button @click="editMode = false" class="btn btn-secondary ml-2">
-              Cancel
-            </button>
-          </form>
-        </div>
+      <div v-else>
+        <p>No user profile found.</p>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { currentUser, setCurrentUser } from "@/dummyData";
+import axios from 'axios';
 
 export default {
-  name: "UpdateProfile",
+  name: 'UpdateProfile',
   data() {
     return {
-      user: { ...currentUser },
+      user: {},
       editMode: false,
     };
   },
+  created() {
+    this.fetchProfile();
+  },
   methods: {
+    fetchProfile() {
+      axios.get('http://localhost:8088/user/profile')
+        .then(response => {
+          this.user = response.data.data;
+        })
+        .catch(error => {
+          console.error('Error fetching profile:', error);
+        });
+    },
     updateProfile() {
-      setCurrentUser(this.user);
-      this.editMode = false; // Switch back to display mode
-      alert("Profile updated successfully!");
+      axios.put(`http://localhost:8088/user/profile`, this.user)
+        .then(() => {
+          alert('Profile updated successfully!');
+          this.editMode = false;
+        })
+        .catch(error => {
+          console.error('Error updating profile:', error);
+        });
     },
-    logout() {
-      // Perform any logout logic here (like clearing tokens, etc.)
-      this.$router.push({ name: "HomePage" });
-    },
-    deleteProfile() {
-      if (
-        confirm(
-          "Are you sure you want to delete your profile? This action cannot be undone."
-        )
-      ) {
-        // Assuming deleteUser is a function that handles the profile deletion
-        this.user = {}; // Clear user data or call the actual delete function
-        alert("Profile deleted successfully!");
-        this.logout(); // Redirect to HomePage after deletion
+    async deleteProfile() {
+      if (confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
+        try {
+          const response = await axios.delete(`http://localhost:8088/user/profile`);
+          if (response.data.status === 'success') {
+            alert('Profile deleted successfully!');
+            this.logout();
+          } else {
+            alert(`Error: ${response.data.message}`);
+          }
+        } catch (error) {
+          console.error('Error deleting profile:', error);
+          alert('An error occurred while deleting your profile.');
+        }
       }
     },
-  },
+    logout() {
+      this.$router.push({ name: 'HomePage' });
+    },
+    
+  }
 };
 </script>
 
 <style scoped>
-.update-profile-container {
+.profile-container {
   text-align: left;
 }
 .card {
