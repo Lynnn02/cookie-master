@@ -84,6 +84,7 @@ import axios from 'axios';
 
 export default {
   name: 'UpdateProfile',
+  inject: ['currentUser', 'setCurrentUser'],
   data() {
     return {
       user: {},
@@ -95,9 +96,9 @@ export default {
   },
   methods: {
     fetchProfile() {
-      axios.get('http://localhost:8088/user/profile')
+      axios.get(`http://localhost:8088/updateprofile/${this.currentUser.id}`)
         .then(response => {
-          this.user = response.data.data;
+          this.user = response.data.user;
         })
         .catch(error => {
           console.error('Error fetching profile:', error);
@@ -116,7 +117,7 @@ export default {
     async deleteProfile() {
       if (confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
         try {
-          const response = await axios.delete(`http://localhost:8088/user/profile`);
+          const response = await axios.delete(`http://localhost:8088/user/${this.currentUser.id}`);
           if (response.data.status === 'success') {
             alert('Profile deleted successfully!');
             this.logout();
@@ -132,7 +133,6 @@ export default {
     logout() {
       this.$router.push({ name: 'HomePage' });
     },
-    
   }
 };
 </script>

@@ -395,26 +395,102 @@ $app->delete('/reviews/{id}', function($request, $response, $args) {
     }
 });
 
-// // Get all applications
-// $app->get('/applications', function($request, $response, $args) {
-//     try {
-//         $db = new db();
-//         $db = $db->connect();
+// Get User Profile by ID
+$app->get('/updateprofile/{id}', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+        
+        $id = $args['id'];
+        $stmt = $db->prepare("SELECT * FROM users WHERE id = :id");
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-//         $sql = "SELECT * FROM applications";
-//         $stmt = $db->query($sql);
-//         $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($user) {
+            unset($user['password']);
+            return $response->withJson(['status' => 'success', 'user' => $user])
+                            ->withHeader('Content-Type', 'application/json')
+                            ->withStatus(200);
+        } else {
+            return $response->withJson(['status' => 'failed', 'message' => 'User not found'])
+                            ->withHeader('Content-Type', 'application/json')
+                            ->withStatus(404);
+        }
+    } catch (PDOException $e) {
+        error_log($e->getMessage(), 0);
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
 
-//         return $response->withJson(['status' => 'success', 'application' => $application])
-//                         ->withHeader('Content-Type', 'application/json')
-//                         ->withStatus(200);
-//     } catch (PDOException $e) {
-//         error_log($e->getMessage(), 0);
-//         return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
-//                         ->withHeader('Content-Type', 'application/json')
-//                         ->withStatus(500);
-//     }
-// });
+// Update User Profile
+$app->put('/user/profile', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+
+        $input = $request->getParsedBody();
+        $id = $input['id'];
+        $name = $input['name'];
+        $email = $input['email'];
+        $phoneNumber = $input['phoneNumber'];
+        $address = $input['address'];
+
+        $sql = "UPDATE users SET name = :name, email = :email, phoneNumber = :phoneNumber, address = :address WHERE id = :id";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':phoneNumber', $phoneNumber);
+        $stmt->bindParam(':address', $address);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+
+        return $response->withJson(['status' => 'success'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(200);
+    } catch (PDOException $e) {
+        error_log($e->getMessage(), 0);
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
+
+// Delete user profile
+$app->delete('/user/{id}', function($request, $response, $args) {
+    try {
+        $db = new db();
+        $db = $db->connect();
+
+        $id = $args['id'];
+
+        $stmt = $db->prepare("SELECT * FROM users WHERE id = :id");
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user) {
+            $stmt = $db->prepare("DELETE FROM users WHERE id = :id");
+            $stmt->bindParam(':id', $id);
+            $stmt->execute();
+
+            return $response->withJson(['status' => 'success'])
+                            ->withHeader('Content-Type', 'application/json')
+                            ->withStatus(200);
+        } else {
+            return $response->withJson(['status' => 'failed', 'message' => 'User not found'])
+                            ->withHeader('Content-Type', 'application/json')
+                            ->withStatus(404);
+        }
+    } catch (PDOException $e) {
+        error_log($e->getMessage(), 0);
+        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+    }
+});
 
 // Get applications by user ID
 $app->get('/applications', function($request, $response, $args) {
@@ -477,27 +553,6 @@ $app->post('/applications', function($request, $response, $args) {
     }
 });
 
-// // Get all applications
-// $app->get('/applications', function($request, $response, $args) {
-//     try {
-//         $db = new db();
-//         $db = $db->connect();
-
-//         $sql = "SELECT * FROM applications";
-//         $stmt = $db->query($sql);
-//         $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-//         return $response->withJson(['status' => 'success', 'applications' => $applications])
-//                         ->withHeader('Content-Type', 'application/json')
-//                         ->withStatus(200);
-//     } catch (PDOException $e) {
-//         error_log($e->getMessage(), 0);
-//         return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
-//                         ->withHeader('Content-Type', 'application/json')
-//                         ->withStatus(500);
-//     }
-// });
-
 // Get application by ID
 $app->get('/applications/{id}', function($request, $response, $args) {
     try {
@@ -535,11 +590,11 @@ $app->get('/applications/user/{userId}/job/{jobId}', function($request, $respons
         $db = $db->connect();
 
         $userId = $args['userId'];
-        $jobId = $args['applicationId'];
+        $jobId = $args['jobId'];
 
-        $stmt = $db->prepare("SELECT * FROM applications WHERE userId = :userId AND applicationId = :applicationId");
+        $stmt = $db->prepare("SELECT * FROM applications WHERE userId = :userId AND jobId = :jobId");
         $stmt->bindParam(':userId', $userId);
-        $stmt->bindParam(':applicationId', $applicationId);
+        $stmt->bindParam(':jobId', $jobId);
         $stmt->execute();
         $application = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -612,137 +667,6 @@ $app->delete('/applications/{id}', function($request, $response, $args) {
         return $response->withJson(['status' => 'success'])
                         ->withHeader('Content-Type', 'application/json')
                         ->withStatus(200);
-    } catch (PDOException $e) {
-        error_log($e->getMessage(), 0);
-        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
-                        ->withHeader('Content-Type', 'application/json')
-                        ->withStatus(500);
-    }
-});
-
-// Get User Profile
-$app->get('/updateprofile/{id}', function($request, $response, $args) {
-    try {
-        $db = new db();
-        $db = $db->connect();
-        
-        $id = $args['id'];
-        $stmt = $db->prepare("SELECT * FROM users WHERE id = :id");
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user) {
-            unset($user['password']);
-            return $response->withJson(['status' => 'success', 'user' => $user])
-                            ->withHeader('Content-Type', 'application/json')
-                            ->withStatus(200);
-        } else {
-            return $response->withJson(['status' => 'failed', 'message' => 'User not found'])
-                            ->withHeader('Content-Type', 'application/json')
-                            ->withStatus(404);
-        }
-    } catch (PDOException $e) {
-        error_log($e->getMessage(), 0);
-        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
-                        ->withHeader('Content-Type', 'application/json')
-                        ->withStatus(500);
-    }
-});
-
-
-// User Profile routes
-$app->get('/user/profile', function($request, $response, $args) {
-    try {
-        $db = new db();
-        $db = $db->connect();
-
-        // Assuming you have some way to get the current user ID
-        $userId = 1; // Replace this with actual user ID
-
-        $stmt = $db->prepare("SELECT * FROM users WHERE id = :id");
-        $stmt->bindParam(':id', $userId);
-        $stmt->execute();
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user) {
-            unset($user['password']);
-            return $response->withJson(['status' => 'success', 'data' => $user])
-                            ->withHeader('Content-Type', 'application/json')
-                            ->withStatus(200);
-        } else {
-            return $response->withJson(['status' => 'failed', 'message' => 'User not found'])
-                            ->withHeader('Content-Type', 'application/json')
-                            ->withStatus(404);
-        }
-    } catch (PDOException $e) {
-        error_log($e->getMessage(), 0);
-        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
-                        ->withHeader('Content-Type', 'application/json')
-                        ->withStatus(500);
-    }
-});
-
-$app->put('/user/profile', function($request, $response, $args) {
-    try {
-        $db = new db();
-        $db = $db->connect();
-
-        $input = $request->getParsedBody();
-        $name = $input['name'];
-        $email = $input['email'];
-        $phoneNumber = $input['phoneNumber'];
-        $address = $input['address'];
-
-        // Assuming you have some way to get the current user ID
-        $userId = 1; // Replace this with actual user ID
-
-        $sql = "UPDATE users SET name = :name, email = :email, phoneNumber = :phoneNumber, address = :address WHERE id = :id";
-        $stmt = $db->prepare($sql);
-        $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':phoneNumber', $phoneNumber);
-        $stmt->bindParam(':address', $address);
-        $stmt->bindParam(':id', $userId);
-        $stmt->execute();
-
-        return $response->withJson(['status' => 'success'])
-                        ->withHeader('Content-Type', 'application/json')
-                        ->withStatus(200);
-    } catch (PDOException $e) {
-        error_log($e->getMessage(), 0);
-        return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
-                        ->withHeader('Content-Type', 'application/json')
-                        ->withStatus(500);
-    }
-    
-});
-// Delete user profile
-$app->delete('/user/{id}', function($request, $response, $args) {
-    try {
-        $db = new db();
-        $db = $db->connect();
-
-        $id = $args['id'];
-
-        $stmt = $db->prepare("SELECT * FROM users WHERE id = :id");
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user) {
-            $stmt = $db->prepare("DELETE FROM users WHERE id = :id");
-            $stmt->bindParam(':id', $id);
-            $stmt->execute();
-
-            return $response->withJson(['status' => 'success'])
-                            ->withHeader('Content-Type', 'application/json')
-                            ->withStatus(200);
-        } else {
-            return $response->withJson(['status' => 'failed', 'message' => 'User not found'])
-                            ->withHeader('Content-Type', 'application/json')
-                            ->withStatus(404);
-        }
     } catch (PDOException $e) {
         error_log($e->getMessage(), 0);
         return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
