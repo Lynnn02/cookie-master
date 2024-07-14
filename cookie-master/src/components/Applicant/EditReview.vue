@@ -108,7 +108,7 @@ export default {
       axios.put(`http://localhost:8088/reviews/${this.reviewId}`, updatedReview)
         .then(() => {
           alert('Review updated successfully!');
-          this.$router.push({ name: 'ReviewList', params: { id: this.jobId } });
+          // this.$router.push({ name: 'ReviewList', params: { id: this.jobId } });
         })
         .catch(error => {
           console.error('Error updating review:', error);

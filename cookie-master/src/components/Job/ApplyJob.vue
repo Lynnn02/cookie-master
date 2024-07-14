@@ -47,10 +47,10 @@
               <label for="introduction">Introduction</label>
               <textarea id="introduction" v-model="introduction" class="form-control" rows="5" required></textarea>
             </div>
-            <div class="form-group">
+            <!-- <div class="form-group">
               <label for="resume">Upload Resume/CV</label>
               <input type="file" id="resume" @change="handleFileUpload" class="form-control" accept=".pdf,.doc,.docx" required>
-            </div>
+            </div> -->
             <button type="submit" class="btn btn-primary">Submit Application</button>
           </form>
         </div>
@@ -76,7 +76,6 @@ export default {
       applicantName: '',
       applicantEmail: '',
       introduction: '',
-      resume: null,
       currentUser: '',
       loading: true,
       error: null,
@@ -111,14 +110,7 @@ export default {
         console.error('User not found in local storage');
       }
     },
-    handleFileUpload(event) {
-      this.resume = event.target.files[0];
-    },
     async submitApplication() {
-      if (!this.resume) {
-        alert('Please upload your resume/CV.');
-        return;
-      }
 
       if (!this.job || !this.job.id) {
         alert('Job details are not loaded properly.');
@@ -131,7 +123,6 @@ export default {
       formData.append('applicantName', this.applicantName);
       formData.append('applicantEmail', this.applicantEmail);
       formData.append('introduction', this.introduction);
-      formData.append('resume', this.resume);
       formData.append('status', 'pending');
 
       try {

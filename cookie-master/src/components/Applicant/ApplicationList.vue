@@ -38,8 +38,6 @@
             <p class="card-text">Applicant Name: {{ application.applicantName }}</p>
             <p class="card-text">Applicant Email: {{ application.applicantEmail }}</p>
             <p class="card-text">Introduction: {{ application.introduction }}</p>
-            <p class="card-text">Resume: {{ application.resume }}</p>
-            <p class="card-text">Status: {{ application.status }}</p>
             <button class="btn btn-danger" @click="cancelApplication(application.id)">Cancel Application</button>
             <button class="btn btn-success" @click="updateApplication(application.id)">Edit Application</button>
           </div>

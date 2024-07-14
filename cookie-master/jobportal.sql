@@ -34,7 +34,6 @@ CREATE TABLE `applications` (
   `applicantName` varchar(100) DEFAULT NULL,
   `applicantEmail` varchar(100) DEFAULT NULL,
   `introduction` text DEFAULT NULL,
-  `resume` varchar(255) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -42,8 +41,8 @@ CREATE TABLE `applications` (
 -- Dumping data for table `applications`
 --
 
-INSERT INTO `applications` (`id`, `jobId`, `userId`, `applicantName`, `applicantEmail`, `introduction`, `resume`, `status`) VALUES
-(2, 2, 2, 'Jane Smith', 'jane@example.com', 'My introduction', 'resume.pdf', 'pending');
+INSERT INTO `applications` (`id`, `jobId`, `userId`, `applicantName`, `applicantEmail`, `introduction`, `status`) VALUES
+(2, 2, 2, 'Jane Smith', 'jane@example.com', 'My introduction', 'pending');
 
 -- --------------------------------------------------------
 

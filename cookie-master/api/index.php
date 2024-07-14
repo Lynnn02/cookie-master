@@ -540,18 +540,18 @@ $app->post('/applications', function($request, $response, $args) {
         $applicantName = $input['applicantName'];
         $applicantEmail = $input['applicantEmail'];
         $introduction = $input['introduction'];
-        $resume = $input['resume'];
+        //$resume = $input['resume'];
         $status = $input['status'];
 
-        $sql = "INSERT INTO applications (jobId, userId, applicantName, applicantEmail, introduction, resume, status) 
-                VALUES (:jobId, :userId, :applicantName, :applicantEmail, :introduction, :resume, :status)";
+        $sql = "INSERT INTO applications (jobId, userId, applicantName, applicantEmail, introduction, status) 
+                VALUES (:jobId, :userId, :applicantName, :applicantEmail, :introduction, :status)";
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':jobId', $jobId);
         $stmt->bindParam(':userId', $userId);
         $stmt->bindParam(':applicantName', $applicantName);
         $stmt->bindParam(':applicantEmail', $applicantEmail);
         $stmt->bindParam(':introduction', $introduction);
-        $stmt->bindParam(':resume', $resume);
+        //$stmt->bindParam(':resume', $resume);
         $stmt->bindParam(':status', $status);
         $stmt->execute();
 
@@ -612,41 +612,52 @@ $app->get('/applications/{id}', function($request, $response, $args) {
 //     }
 // });
 
-// Update Application
 $app->put('/applications/{id}', function($request, $response, $args) {
     try {
         $db = new db();
         $db = $db->connect();
-
+        
         $id = $args['id'];
         $input = $request->getParsedBody();
-        $applicantName = $input['applicantName'];
-        $applicantEmail = $input['applicantEmail'];
-        $introduction = $input['introduction'];
-        $resume = isset($input['resume']) ? $input['resume'] : null;
+        $applicantName = $input['applicantName'] ?? null;
+        $applicantEmail = $input['applicantEmail'] ?? null;
+        $introduction = $input['introduction'] ?? null;
+        $status = $input['status'] ?? null;
 
-        $sql = "UPDATE applications SET applicantName = :applicantName, applicantEmail = :applicantEmail, introduction = :introduction" .
-               ($resume ? ", resume = :resume" : "") .
-               " WHERE id = :id";
+        // Check if the application exists
+        $checkSql = "SELECT COUNT(*) as count FROM applications WHERE id = :id";
+        $checkStmt = $db->prepare($checkSql);
+        $checkStmt->bindParam(':id', $id);
+        $checkStmt->execute();
+        $row = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($row['count'] == 0) {
+            return $response->withJson(['status' => 'failed', 'message' => 'Application not found'])
+                            ->withHeader('Content-Type', 'application/json')
+                            ->withStatus(404);
+        }
+        
+        // Update the application
+        $sql = "UPDATE applications SET applicantName = :applicantName, applicantEmail = :applicantEmail, introduction = :introduction, status = :status WHERE id = :id";
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':applicantName', $applicantName);
         $stmt->bindParam(':applicantEmail', $applicantEmail);
         $stmt->bindParam(':introduction', $introduction);
-        if ($resume) {
-            $stmt->bindParam(':resume', $resume);
-        }
+        $stmt->bindParam(':status', $status);
         $stmt->bindParam(':id', $id);
         $stmt->execute();
-
+        
         return $response->withJson(['status' => 'success'])
                         ->withHeader('Content-Type', 'application/json')
                         ->withStatus(200);
     } catch (PDOException $e) {
+        error_log($e->getMessage(), 0);
         return $response->withJson(['status' => 'failed', 'message' => 'Database error'])
                         ->withHeader('Content-Type', 'application/json')
                         ->withStatus(500);
     }
 });
+
 
 // Delete Application
 $app->delete('/applications/{id}', function($request, $response, $args) {

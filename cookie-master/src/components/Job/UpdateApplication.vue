@@ -1,5 +1,5 @@
 <template>
-  <div class="update-application-container">
+  <div class="edit-application-container">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
@@ -28,74 +28,24 @@
       </div>
     </nav>
 
-    <!-- Update Application -->
-    <div class="container mt-4" v-if="loading">
-      <div class="alert alert-info" role="alert">
-        Loading application details...
-      </div>
-    </div>
-
-    <div class="container mt-4" v-if="!loading && application">
-      <div class="card">
-        <div class="card-body">
-          <h3 class="card-title">Update Application for Job ID: {{ application.jobId }}</h3>
-          <form @submit.prevent="updateApplication">
-            <div class="form-group">
-              <label for="applicantName">Name</label>
-              <input
-                type="text"
-                id="applicantName"
-                v-model="applicantName"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="applicantEmail">Email</label>
-              <input
-                type="email"
-                id="applicantEmail"
-                v-model="applicantEmail"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="introduction">Introduction</label>
-              <textarea
-                id="introduction"
-                v-model="introduction"
-                class="form-control"
-                rows="5"
-                required
-              ></textarea>
-            </div>
-            <div class="form-group">
-              <label for="resume">Upload Resume/CV</label>
-              <input
-                type="file"
-                id="resume"
-                @change="handleFileUpload"
-                class="form-control"
-                accept=".pdf,.doc,.docx"
-              />
-            </div>
-            <button type="submit" class="btn btn-primary">Update Application</button>
-          </form>
+    <!-- Edit Application -->
+    <div class="container mt-4">
+      <h3>Edit Application</h3>
+      <form @submit.prevent="updateApplication">
+        <div class="form-group">
+          <label for="applicantName">Applicant Name</label>
+          <input type="text" id="applicantName" v-model="applicantName" class="form-control" required />
         </div>
-      </div>
-    </div>
-
-    <div class="container mt-4" v-if="!loading && !application">
-      <div class="alert alert-danger" role="alert">
-        Application not found!
-      </div>
-    </div>
-
-    <div class="container mt-4" v-if="error">
-      <div class="alert alert-danger" role="alert">
-        {{ error }}
-      </div>
+        <div class="form-group">
+          <label for="applicantEmail">Applicant Email</label>
+          <input type="email" id="applicantEmail" v-model="applicantEmail" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label for="introduction">Introduction</label>
+          <textarea id="introduction" v-model="introduction" class="form-control" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Application</button>
+      </form>
     </div>
   </div>
 </template>
@@ -104,85 +54,49 @@
 import axios from 'axios';
 
 export default {
-  name: 'UpdateApplication',
+  name: 'EditApplication',
   props: ['id'],
   data() {
     return {
       applicationId: parseInt(this.id),
-      application: '',
       applicantName: '',
       applicantEmail: '',
       introduction: '',
-      resume: '',
-      currentUser: '',
-      loading: true,
-      error: null,
+      application: null,
     };
   },
   created() {
-    this.fetchCurrentUser();
+    this.fetchApplication();
   },
   methods: {
-    fetchCurrentUser() {
-      const user = localStorage.getItem('currentUser');
-      if (user) {
-        this.currentUser = JSON.parse(user);
-        this.fetchApplication();
-      } else {
-        this.error = 'User not found in local storage';
-        console.error('User not found in local storage');
-        this.loading = false;
-      }
-    },
-    async fetchApplication() {
-      try {
-        const response = await axios.get(`http://localhost:8088/applications/${this.applicationId}`);
-        this.application = response.data.application;
-        if (this.application) {
+    fetchApplication() {
+      axios.get(`http://localhost:8088/applications/${this.applicationId}`)
+        .then(response => {
+          this.application = response.data.application;
           this.applicantName = this.application.applicantName;
           this.applicantEmail = this.application.applicantEmail;
           this.introduction = this.application.introduction;
-        }
-        this.loading = false;
-      } catch (error) {
-        this.error = 'Error fetching application';
-        console.error('Error fetching application:', error);
-        this.loading = false;
-      }
-    },
-    handleFileUpload(event) {
-      this.resume = event.target.files[0];
-    },
-    async updateApplication() {
-      if (!this.application || !this.applicationId) {
-        alert('Application details are not loaded properly.');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('applicantName', this.applicantName);
-      formData.append('applicantEmail', this.applicantEmail);
-      formData.append('introduction', this.introduction);
-      if (this.resume) {
-        formData.append('resume', this.resume);
-      }
-      formData.append('status', 'pending');
-
-      try {
-        await axios.put(`http://localhost:8088/applications/${this.applicationId}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+        })
+        .catch(error => {
+          console.error('Error fetching application:', error);
         });
-        alert('Application updated successfully!');
-        this.$router.push({ name: 'ApplicationList' });
-      } catch (error) {
-        console.error('Error updating application:', error);
-        alert('Failed to update application.');
-      }
+    },
+    updateApplication() {
+      const updatedApplication = {
+        applicantName: this.applicantName,
+        applicantEmail: this.applicantEmail,
+        introduction: this.introduction,
+      };
+      axios.put(`http://localhost:8088/applications/${this.applicationId}`, updatedApplication)
+        .then(() => {
+          alert('Application updated successfully!');
+          this.$router.push({ name: 'ApplicationList' });
+        })
+        .catch(error => {
+          console.error('Error updating application:', error);
+        });
     },
     logout() {
-      localStorage.removeItem('currentUser');
       this.$router.push({ name: 'HomePage' });
     },
   },
@@ -190,16 +104,13 @@ export default {
 </script>
 
 <style scoped>
-.update-application-container {
+.edit-application-container {
   text-align: left;
-}
-.card {
-  margin-bottom: 1rem;
 }
 .navbar-nav .nav-link {
   transition: color 0.3s ease-in-out;
 }
 .navbar-nav .nav-link:hover {
-  color: #007bff; /* Bootstrap primary color */
+  color: #007bff;
 }
 </style>
